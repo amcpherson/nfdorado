@@ -126,7 +126,7 @@ process samtools_merge {
     tag "Merging BAM files"
 
     input:
-    path basecalled_bams
+    path basecalled_bams, stageAs: "?/*"
 
     output:
     path "merged.bam", emit: merged_bam
