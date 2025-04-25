@@ -35,6 +35,7 @@ workflow NFDORADO {
 
     take:
     samplesheet
+    sample_id
 
     main:
 
@@ -49,11 +50,11 @@ workflow NFDORADO {
 
     basecalling = dorado_basecalling(pod5_files, params.model_quality, params.methyl_context, params.models_dir)
 
-    merged = samtools_merge(basecalling.basecalled_bam.collect())
+    merged = samtools_merge(basecalling.basecalled_bam.collect(), sample_id)
 
-    sorting = samtools_sort(merged.merged_bam)
+    sorting = samtools_sort(merged.merged_bam, sample_id)
 
-    samtools_stats(sorting.sorted_bam)
+    samtools_stats(sorting.sorted_bam, sample_id)
 }
 
 
@@ -127,13 +128,14 @@ process samtools_merge {
 
     input:
     path basecalled_bams, stageAs: "?/*"
+    val sample_id
 
     output:
-    path "merged.bam", emit: merged_bam
+    path "${sample_id}.bam", emit: merged_bam
 
     script:
     """
-    samtools merge -f merged.bam ${basecalled_bams}
+    samtools merge -f ${sample_id}.bam ${basecalled_bams}
     """
 }
 
@@ -142,16 +144,18 @@ process samtools_sort {
     container 'quay.io/shahlab_singularity/ont_methylation'
 
     tag "Sorting BAM"
+    publishdir "results"
 
     input:
-    path basecalled_bam
+    path basecalled_bam, name: 'basecalled.bam'
+    val sample_id
 
     output:
-    path "sorted.bam", emit: sorted_bam
+    path "${sample_id}.bam", emit: sorted_bam
 
     script:
     """
-    samtools sort -N ${basecalled_bam} > sorted.bam
+    samtools sort -N ${basecalled_bam} > ${sample_id}.bam
     """
 }
 
@@ -160,16 +164,17 @@ process samtools_stats {
     container 'quay.io/shahlab_singularity/ont_methylation'
 
     tag "Generating stats"
+    publishdir "."
 
     input:
     path sorted_bam
 
     output:
-    path "sorted.bam.stats"
+    path "${sorted_bam}.stats" 
 
     script:
     """
-    samtools stats ${sorted_bam} > sorted.bam.stats
+    samtools stats ${sorted_bam} > ${sorted_bam}.stats
     """
 }
 
