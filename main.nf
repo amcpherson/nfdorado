@@ -14,6 +14,7 @@
 */
 
 include { NFDORADO  } from './workflows/nfdorado'
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     NAMED WORKFLOWS FOR PIPELINE
@@ -42,6 +43,10 @@ workflow SHAHCOMPBIO_NFDORADO {
     RUN MAIN WORKFLOW
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
+if (!params.input) {
+    error "Missing required parameter: --input"
+}
 
 workflow {
 
