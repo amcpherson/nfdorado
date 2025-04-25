@@ -36,7 +36,7 @@ workflow SHAHCOMPBIO_NFDORADO {
     // WORKFLOW: Run pipeline
     //
     NFDORADO (
-        samplesheet
+        samplesheet,
         sample_id
     )
 }
@@ -52,6 +52,9 @@ if (!params.input) {
 if (!params.sample_id) {
     error "Missing required parameter: --sample_id"
 }
+if (!params.output_dir) {
+    error "Missing required parameter: --output_dir"
+}
 
 workflow {
 
@@ -61,7 +64,7 @@ workflow {
     // WORKFLOW: Run main workflow
     //
     SHAHCOMPBIO_NFDORADO (
-        params.input
+        params.input,
         params.sample_id
     )
 }

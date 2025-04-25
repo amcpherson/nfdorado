@@ -143,7 +143,11 @@ process samtools_sort {
     container 'quay.io/shahlab_singularity/ont_methylation'
 
     tag "Sorting BAM"
-    publishdir "results"
+
+    publishDir = [
+        path: { "${params.output_dir}/" },
+        mode: 'copy'
+    ]
 
     input:
     path basecalled_bam
@@ -163,7 +167,11 @@ process samtools_stats {
     container 'quay.io/shahlab_singularity/ont_methylation'
 
     tag "Generating stats"
-    publishdir "."
+
+    publishDir = [
+        path: { "${params.output_dir}/" },
+        mode: 'copy'
+    ]
 
     input:
     path sorted_bam
