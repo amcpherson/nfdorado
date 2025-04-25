@@ -15,16 +15,20 @@ nextflow.enable.dsl=2
 */
 
 // Define inputs
-params.modelQuality = 'sup@latest'
+params.model_quality = 'sup@latest'
 params.methyl_context = '5mC_5hmC@latest,6mA@latest'
-params.models_dir = '/data1/shahs3/users/schrait/dorado/models'
+params.models_dir = '/data1/shahs3/users/schrait/dorado/models' // TODO fix this
 params.convert_fast5 = true
 
 println "Running with the following parameters:"
-println "Model Quality: ${params.modelQuality}"
+println "Model Quality: ${params.model_quality}"
 println "Methylation Context: ${params.methyl_context}"
 println "Models Directory: ${params.models_dir}"
 println "Convert FAST5: ${params.convert_fast5}"
+
+
+// TODO: publishdir
+// TODO: name the bam file
 
 
 workflow NFDORADO {
@@ -38,21 +42,23 @@ workflow NFDORADO {
         .fromPath(samplesheet)
         .splitCsv(header: true)
         .map { row -> file(row.filename) }
-        .collect()
 
     pod5_files = params.convert_fast5
         ? fast5_to_pod5(inputs)
-        : merge_pod5(inputs)
+        : inputs
 
-    basecalling = dorado_basecalling(pod5_files, params.modelQuality, params.methyl_context, params.models_dir)
+    basecalling = dorado_basecalling(pod5_files, params.model_quality, params.methyl_context, params.models_dir)
 
-    sorting = samtools_sort(basecalling.basecalled_bam)
+    merged = samtools_merge(basecalling.basecalled_bam.collect())
+
+    sorting = samtools_sort(merged.merged_bam)
 
     samtools_stats(sorting.sorted_bam)
 }
 
 
 process fast5_to_pod5 {
+    container 'quay.io/shahlab_singularity/ont_methylation'
 
     tag "Convert FAST5 to POD5"
 
@@ -64,12 +70,13 @@ process fast5_to_pod5 {
 
     script:
     """
-    /home/mcphera1/micromamba/envs/pod5/bin/pod5 convert fast5 ./ -o converted.pod5
+    pod5 convert fast5 ./ -o converted.pod5
     """
 }
 
 
 process merge_pod5 {
+    container 'quay.io/shahlab_singularity/ont_methylation'
 
     tag "Merge POD5"
 
@@ -81,18 +88,19 @@ process merge_pod5 {
 
     script:
     """
-    /home/mcphera1/micromamba/envs/pod5/bin/pod5 merge ./ -o merged.pod5
+    pod5 merge ./ -o merged.pod5
     """
 }
 
 
 process dorado_basecalling {
+    container 'quay.io/shahlab_singularity/ont_methylation'
 
     tag "Dorado basecalling"
 
     input:
     path pod5_files
-    val modelQuality
+    val model_quality
     val methyl_context
     val models_dir
 
@@ -101,9 +109,7 @@ process dorado_basecalling {
 
     script:
     """
-    singularity run --nv --bind /data1/shahs3:/data1/shahs3 \
-    /data1/shahs3/users/schrait/dorado/ont_methylation.sif \
-    dorado basecaller --models-directory ${models_dir} ${modelQuality},${methyl_context} ./ --device cuda:all --recursive --verbose -o ./
+    dorado basecaller --models-directory ${models_dir} ${model_quality},${methyl_context} ./ --device cuda:all --recursive --verbose -o ./
 
     n_bams=\$(ls *.bam | wc -l)
     if [ "\$n_bams" -ne 1 ]; then
@@ -114,7 +120,26 @@ process dorado_basecalling {
 }
 
 
+process samtools_merge {
+    container 'quay.io/shahlab_singularity/ont_methylation'
+
+    tag "Merging BAM files"
+
+    input:
+    path basecalled_bams
+
+    output:
+    path "merged.bam", emit: merged_bam
+
+    script:
+    """
+    samtools merge -f merged.bam ${basecalled_bams}
+    """
+}
+
+
 process samtools_sort {
+    container 'quay.io/shahlab_singularity/ont_methylation'
 
     tag "Sorting BAM"
 
@@ -132,6 +157,7 @@ process samtools_sort {
 
 
 process samtools_stats {
+    container 'quay.io/shahlab_singularity/ont_methylation'
 
     tag "Generating stats"
 
