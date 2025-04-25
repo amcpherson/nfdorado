@@ -1,0 +1,88 @@
+bump_version: null
+lint:
+  base_config: false
+  files_exist:
+  - .github/workflows/branch.yml
+  - .github/workflows/ci.yml
+  - .github/workflows/linting_comment.yml
+  - .github/workflows/linting.yml
+  - conf/igenomes.config
+  - conf/igenomes_ignored.config
+  - CITATIONS.md
+  - conf/base.config
+  - conf/modules.config
+  - modules.json
+  - assets/email_template.html
+  - assets/sendmail_template.txt
+  - assets/email_template.txt
+  - .github/workflows/branch.yml
+  - .github/workflows/ci.yml
+  - .github/workflows/linting_comment.yml
+  - .github/workflows/linting.yml
+  - conf/igenomes.config
+  - conf/igenomes_ignored.config
+  - CITATIONS.md
+  - conf/base.config
+  - conf/modules.config
+  - modules.json
+  - assets/email_template.html
+  - assets/sendmail_template.txt
+  - assets/email_template.txt
+  - CODE_OF_CONDUCT.md
+  - assets/nf-core-nfdorado_logo_light.png
+  - docs/images/nf-core-nfdorado_logo_light.png
+  - docs/images/nf-core-nfdorado_logo_dark.png
+  - .github/ISSUE_TEMPLATE/config.yml
+  - .github/workflows/awstest.yml
+  - .github/workflows/awsfulltest.yml
+  files_unchanged:
+  - .github/CONTRIBUTING.md
+  - .prettierignore
+  - .prettierignore
+  - .prettierignore
+  - .github/CONTRIBUTING.md
+  - .prettierignore
+  - .prettierignore
+  - .prettierignore
+  - CODE_OF_CONDUCT.md
+  - assets/nf-core-nfdorado_logo_light.png
+  - docs/images/nf-core-nfdorado_logo_light.png
+  - docs/images/nf-core-nfdorado_logo_dark.png
+  - .github/ISSUE_TEMPLATE/bug_report.yml
+  modules_config: false
+  modules_json: false
+  multiqc_config:
+  - report_comment
+  nextflow_config:
+  - manifest.name
+  - manifest.homePage
+  - validation.help.beforeText
+  - validation.help.afterText
+  - validation.summary.beforeText
+  - validation.summary.afterText
+  nfcore_components: false
+nf_core_version: 3.0.2
+org_path: null
+repository_type: pipeline
+template:
+  author: Andrew McPherson, Tobias Schraink
+  description: Dorado Nextflow pipeline
+  force: true
+  is_nfcore: false
+  name: nfdorado
+  org: shahcompbio
+  outdir: nfdorado
+  skip_features:
+  - ci
+  - igenomes
+  - citations
+  - gitpod
+  - codespaces
+  - fastqc
+  - modules
+  - email
+  - adaptivecard
+  - slackreport
+  - seqera_platform
+  version: 1.0.0dev
+update: null
