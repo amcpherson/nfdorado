@@ -50,11 +50,11 @@ workflow NFDORADO {
 
     basecalling = dorado_basecalling(pod5_files, params.model_quality, params.methyl_context, params.models_dir)
 
-    merged = samtools_merge(basecalling.basecalled_bam.collect(), sample_id)
+    merged = samtools_merge(basecalling.basecalled_bam.collect())
 
     sorting = samtools_sort(merged.merged_bam, sample_id)
 
-    samtools_stats(sorting.sorted_bam, sample_id)
+    samtools_stats(sorting.sorted_bam)
 }
 
 
@@ -128,14 +128,13 @@ process samtools_merge {
 
     input:
     path basecalled_bams, stageAs: "?/*"
-    val sample_id
 
     output:
-    path "${sample_id}.bam", emit: merged_bam
+    path "merged.bam", emit: merged_bam
 
     script:
     """
-    samtools merge -f ${sample_id}.bam ${basecalled_bams}
+    samtools merge -f merged.bam ${basecalled_bams}
     """
 }
 
@@ -147,7 +146,7 @@ process samtools_sort {
     publishdir "results"
 
     input:
-    path basecalled_bam, name: 'basecalled.bam'
+    path basecalled_bam
     val sample_id
 
     output:
