@@ -28,6 +28,7 @@ workflow SHAHCOMPBIO_NFDORADO {
 
     take:
     samplesheet // channel: samplesheet read in from --input
+    sample_id // channel: sample_id read in from --sample_id
 
     main:
 
@@ -36,6 +37,7 @@ workflow SHAHCOMPBIO_NFDORADO {
     //
     NFDORADO (
         samplesheet
+        sample_id
     )
 }
 /*
