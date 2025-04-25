@@ -44,8 +44,6 @@ workflow NFDORADO {
         .splitCsv(header: true)
         .map { row -> file(row.filename) }
 
-    sample_id_ch = Channel.of(sample_id)
-
     pod5_files = params.convert_fast5
         ? fast5_to_pod5(inputs)
         : inputs
@@ -54,7 +52,7 @@ workflow NFDORADO {
 
     merged = samtools_merge(basecalling.basecalled_bam.collect())
 
-    sorting = samtools_sort(merged.merged_bam, sample_id_ch)
+    sorting = samtools_sort(merged.merged_bam, sample_id)
 
     samtools_stats(sorting.sorted_bam)
 }
