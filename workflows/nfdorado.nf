@@ -15,10 +15,16 @@ nextflow.enable.dsl=2
 */
 
 // Define inputs
-params.modelQuality = 'dna_r9.4.1_e8.1_sup'
-params.methyl_context = 'modbases_5mC_5hmC_CpG_v001'
+params.modelQuality = 'sup@latest'
+params.methyl_context = '5mC_5hmC@latest,6mA@latest'
 params.models_dir = '/data1/shahs3/users/schrait/dorado/models'
 params.convert_fast5 = true
+
+println "Running with the following parameters:"
+println "Model Quality: ${params.modelQuality}"
+println "Methylation Context: ${params.methyl_context}"
+println "Models Directory: ${params.models_dir}"
+println "Convert FAST5: ${params.convert_fast5}"
 
 
 workflow NFDORADO {
@@ -32,29 +38,11 @@ workflow NFDORADO {
         .fromPath(samplesheet)
         .splitCsv(header: true)
         .map { row -> file(row.filename) }
-
-    inputs.view()
+        .collect()
 
     pod5_files = params.convert_fast5
         ? fast5_to_pod5(inputs)
-        : inputs
-
-    // // Split by extension
-    // split_files = all_files
-    //     .branch {
-    //         is_pod5: { k, f -> f.name.endsWith('.pod5') }
-    //         is_fast5: { k, f -> f.name.endsWith('.fast5') }
-    //     }
-    // // split_files.is_fast5.view()
-    // // split_files.is_pod5.view()
-
-    // // Convert fast5 to pod5
-    // fast5_to_pod5(split_files.is_fast5)
-    //     .concat(split_files.is_pod5)
-    //     .groupTuple()
-    //     .set { grouped_pod5_files }
-
-    pod5_files.view()
+        : merge_pod5(inputs)
 
     basecalling = dorado_basecalling(pod5_files, params.modelQuality, params.methyl_context, params.models_dir)
 
@@ -66,24 +54,41 @@ workflow NFDORADO {
 
 process fast5_to_pod5 {
 
-    tag "Convert FAST5 to POD5 for ${sample_id}"
+    tag "Convert FAST5 to POD5"
 
     input:
-    path(fast5_file)
+    path fast5_file
 
     output:
-    path("converted.pod5")
+    path "converted.pod5", emit: pod5_file
 
     script:
     """
-    pod5 convert fast5 ${fast5_file} converted.pod5
+    /home/mcphera1/micromamba/envs/pod5/bin/pod5 convert fast5 ./ -o converted.pod5
+    """
+}
+
+
+process merge_pod5 {
+
+    tag "Merge POD5"
+
+    input:
+    path pod5_file
+
+    output:
+    path "merged.pod5", emit: pod5_file
+
+    script:
+    """
+    /home/mcphera1/micromamba/envs/pod5/bin/pod5 merge ./ -o merged.pod5
     """
 }
 
 
 process dorado_basecalling {
 
-    tag "Dorado basecalling on ${pod5_files}"
+    tag "Dorado basecalling"
 
     input:
     path pod5_files
@@ -92,11 +97,19 @@ process dorado_basecalling {
     val models_dir
 
     output:
-    path "basecalled.bam", emit: basecalled_bam
+    path "*.bam", emit: basecalled_bam
 
     script:
     """
-    dorado basecaller --models-directory ${models_dir} ${modelQuality},${methyl_context} ./ --device cuda:all --recursive --verbose > basecalled.bam
+    singularity run --nv --bind /data1/shahs3:/data1/shahs3 \
+    /data1/shahs3/users/schrait/dorado/ont_methylation.sif \
+    dorado basecaller --models-directory ${models_dir} ${modelQuality},${methyl_context} ./ --device cuda:all --recursive --verbose -o ./
+
+    n_bams=\$(ls *.bam | wc -l)
+    if [ "\$n_bams" -ne 1 ]; then
+        echo "ERROR: Expected exactly one BAM file but found \$n_bams"
+        exit 1
+    fi
     """
 }
 
