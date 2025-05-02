@@ -96,12 +96,8 @@ process merge_pod5 {
 
 process dorado_basecalling {
     container 'quay.io/shahlab_singularity/ont_methylation'
-    accelerator 1
-    maxForks 4
-    beforeScript "export CUDA_VISIBLE_DEVICES=${task.index % 4}"
-
-
     tag "Dorado basecalling"
+    maxForks 1
 
     input:
     path pod5_files
