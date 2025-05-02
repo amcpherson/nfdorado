@@ -102,6 +102,7 @@ process dorado_basecalling {
 
 
     tag "Dorado basecalling"
+    maxForks 1
 
     input:
     path pod5_files
