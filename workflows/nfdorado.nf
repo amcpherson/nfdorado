@@ -60,6 +60,7 @@ workflow NFDORADO {
 
 process fast5_to_pod5 {
     container 'quay.io/shahlab_singularity/ont_methylation'
+    label 'cpu'
 
     tag "Convert FAST5 to POD5"
 
@@ -78,6 +79,7 @@ process fast5_to_pod5 {
 
 process merge_pod5 {
     container 'quay.io/shahlab_singularity/ont_methylation'
+    label 'cpu'
 
     tag "Merge POD5"
 
@@ -96,9 +98,7 @@ process merge_pod5 {
 
 process dorado_basecalling {
     container 'quay.io/shahlab_singularity/ont_methylation'
-    accelerator 1
-    maxForks 4
-    beforeScript "export CUDA_VISIBLE_DEVICES=${task.index % 4}"
+    label 'gpu'
 
 
     tag "Dorado basecalling"
@@ -127,6 +127,7 @@ process dorado_basecalling {
 
 process samtools_merge {
     container 'quay.io/shahlab_singularity/ont_methylation'
+    label 'bigmem'
 
     tag "Merging BAM files"
 
@@ -145,6 +146,7 @@ process samtools_merge {
 
 process samtools_sort {
     container 'quay.io/shahlab_singularity/ont_methylation'
+    label 'bigmem'
 
     tag "Sorting BAM"
 
@@ -169,6 +171,7 @@ process samtools_sort {
 
 process samtools_stats {
     container 'quay.io/shahlab_singularity/ont_methylation'
+    label 'bigmem'
 
     tag "Generating stats"
 
