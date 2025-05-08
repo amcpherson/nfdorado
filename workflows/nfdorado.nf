@@ -15,13 +15,13 @@ nextflow.enable.dsl=2
 */
 
 // Define inputs
-params.model_quality = 'sup@latest'
+params.base_model = 'sup@latest'
 params.modified_base_models = '5mC_5hmC@latest,6mA@latest'
 params.models_dir = '/data1/shahs3/users/schrait/dorado/models' // TODO fix this
 params.convert_fast5 = true
 
 println "Running with the following parameters:"
-println "Model Quality: ${params.model_quality}"
+println "Model Quality: ${params.base_model}"
 println "Modified Base Models: ${params.modified_base_models}"
 println "Models Directory: ${params.models_dir}"
 println "Convert FAST5: ${params.convert_fast5}"
@@ -48,7 +48,7 @@ workflow NFDORADO {
         ? fast5_to_pod5(inputs)
         : inputs
 
-    basecalling = dorado_basecalling(pod5_files, params.model_quality, params.modified_base_models, params.models_dir)
+    basecalling = dorado_basecalling(pod5_files, params.base_model, params.modified_base_models, params.models_dir)
 
     merged = samtools_merge(basecalling.basecalled_bam.collect())
 
@@ -106,7 +106,7 @@ process dorado_basecalling {
 
     input:
     path pod5_files
-    val model_quality
+    val base_model
     val modified_base_models
     val models_dir
 
@@ -115,7 +115,7 @@ process dorado_basecalling {
 
     script:
     """
-    dorado basecaller --models-directory ${models_dir} ${model_quality},${modified_base_models} ./ --device cuda:all --recursive --verbose -o ./
+    dorado basecaller --models-directory ${models_dir} ${base_model},${modified_base_models} ./ --device cuda:all --recursive --verbose -o ./
 
     n_bams=\$(ls *.bam | wc -l)
     if [ "\$n_bams" -ne 1 ]; then
