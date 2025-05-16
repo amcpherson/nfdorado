@@ -115,6 +115,9 @@ process dorado_basecalling {
 
     script:
     """
+    hostname
+    nvidia-smi --query-gpu=index,name,pci.bus_id --format=csv
+
     dorado basecaller --models-directory ${models_dir} ${base_model},${modified_base_models} ./ --device cuda:all --recursive --verbose -o ./
 
     n_bams=\$(ls *.bam | wc -l)
